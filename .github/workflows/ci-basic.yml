@@ -1,0 +1,40 @@
+name: Basic CI Pipeline
+   
+   on:
+     push:
+       branches: [ main ]
+     pull_request:
+       branches: [ main ]
+   
+   jobs:
+     basic-checks:
+       runs-on: ubuntu-latest
+       
+       steps:
+         - name: Checkout code
+           uses: actions/checkout@v4
+         
+         - name: Show repository structure
+           run: |
+             echo "📂 Repository structure:"
+             ls -la
+         
+         - name: Check for secrets
+           run: |
+             echo "🔍 Checking for potential secrets..."
+             if grep -r -i "password\|api[_-]key\|secret" --include="*.conf" --include="*.txt" .; then
+               echo "⚠️ Warning: Potential secrets found"
+             else
+               echo "✅ No obvious secrets detected"
+             fi
+         
+         - name: Validate conventional commits
+           run: |
+             echo "📝 Checking last commit message..."
+             COMMIT_MSG=$(git log -1 --pretty=%B)
+             echo "Last commit: $COMMIT_MSG"
+             if echo "$COMMIT_MSG" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?:"; then
+               echo "✅ Commit message follows conventions"
+             else
+               echo "⚠️ Commit message doesn't follow Conventional Commits"
+             fi
