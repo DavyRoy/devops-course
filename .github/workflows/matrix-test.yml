@@ -1,0 +1,47 @@
+name: Matrix Testing
+   
+   on:
+     push:
+       branches: [ main ]
+   
+   jobs:
+     test-multiple-environments:
+       runs-on: ${{ matrix.os }}
+       
+       strategy:
+         matrix:
+           os: [ubuntu-latest, ubuntu-20.04]
+           check-type: [structure, secrets, commits]
+       
+       steps:
+         - name: Checkout code
+           uses: actions/checkout@v4
+         
+         - name: Show environment info
+           run: |
+             echo "🖥️  OS: ${{ matrix.os }}"
+             echo "🔍 Check type: ${{ matrix.check-type }}"
+             echo "📦 Runner: $(uname -a)"
+         
+         - name: Run check based on type
+           run: |
+             case "${{ matrix.check-type }}" in
+               structure)
+                 echo "📂 Checking repository structure..."
+                 ls -la git/git-learning/
+                 ;;
+               secrets)
+                 echo "🔐 Checking for secrets..."
+                 if grep -r -i "password\|api[_-]key" git/git-learning/ 2>/dev/null; then
+                   echo "⚠️ Potential secrets found"
+                 else
+                   echo "✅ No secrets detected"
+                 fi
+                 ;;
+               commits)
+                 echo "📝 Validating commit messages..."
+                 git log -3 --pretty=format:"%s" | while read msg; do
+                   echo "Checking: $msg"
+                 done
+                 ;;
+             esac
