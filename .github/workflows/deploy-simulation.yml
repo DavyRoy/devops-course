@@ -1,0 +1,77 @@
+name: Deploy Simulation
+   
+   on:
+     workflow_dispatch:
+       inputs:
+         environment:
+           description: 'Target environment'
+           required: true
+           type: choice
+           options:
+             - staging
+             - production
+         skip_tests:
+           description: 'Skip tests?'
+           required: false
+           type: boolean
+           default: false
+   
+   jobs:
+     pre-deploy-checks:
+       runs-on: ubuntu-latest
+       
+       steps:
+         - name: Checkout code
+           uses: actions/checkout@v4
+         
+         - name: Show deployment info
+           run: |
+             echo "🚀 Deploying to: ${{ inputs.environment }}"
+             echo "⏭️  Skip tests: ${{ inputs.skip_tests }}"
+         
+         - name: Run tests
+           if: ${{ !inputs.skip_tests }}
+           run: |
+             echo "🧪 Running tests..."
+             sleep 2
+             echo "✅ All tests passed!"
+         
+         - name: Skip tests notification
+           if: ${{ inputs.skip_tests }}
+           run: |
+             echo "⚠️ TESTS SKIPPED - Deploy at your own risk!"
+     
+     deploy:
+       needs: pre-deploy-checks
+       runs-on: ubuntu-latest
+       
+       steps:
+         - name: Checkout code
+           uses: actions/checkout@v4
+         
+         - name: Staging deployment
+           if: ${{ inputs.environment == 'staging' }}
+           run: |
+             echo "📦 Deploying to STAGING..."
+             echo "Server: staging.example.com"
+             sleep 2
+             echo "✅ Staging deployment complete!"
+         
+         - name: Production deployment
+           if: ${{ inputs.environment == 'production' }}
+           run: |
+             echo "🔴 Deploying to PRODUCTION..."
+             echo "Server: production.example.com"
+             echo "⚠️  This is a critical deployment!"
+             sleep 3
+             echo "✅ Production deployment complete!"
+         
+         - name: Deployment summary
+           run: |
+             echo "════════════════════════════"
+             echo "📊 Deployment Summary"
+             echo "════════════════════════════"
+             echo "Environment: ${{ inputs.environment }}"
+             echo "Tests run: ${{ !inputs.skip_tests }}"
+             echo "Status: SUCCESS ✅"
+             echo "Time: $(date)"
