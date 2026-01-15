@@ -1,0 +1,44 @@
+name: Artifacts Demo
+   
+   on:
+     push:
+       branches: [ main ]
+   
+   jobs:
+     generate-report:
+       runs-on: ubuntu-latest
+       
+       steps:
+         - name: Checkout code
+           uses: actions/checkout@v4
+         
+         - name: Generate test report
+           run: |
+             echo "🧪 Running tests and generating report..."
+             mkdir -p reports
+             
+             echo "=== Test Report ===" > reports/test-report.txt
+             echo "Date: $(date)" >> reports/test-report.txt
+             echo "Branch: ${{ github.ref_name }}" >> reports/test-report.txt
+             echo "Commit: ${{ github.sha }}" >> reports/test-report.txt
+             echo "" >> reports/test-report.txt
+             echo "✅ All tests passed!" >> reports/test-report.txt
+             
+             cat reports/test-report.txt
+         
+         - name: Generate file listing
+           run: |
+             echo "📂 Creating file listing..."
+             ls -laR git/git-learning/ > reports/file-listing.txt
+         
+         - name: Upload artifacts
+           uses: actions/upload-artifact@v4
+           with:
+             name: test-reports
+             path: reports/
+             retention-days: 7
+         
+         - name: Show artifact info
+           run: |
+             echo "📦 Artifacts uploaded successfully!"
+             echo "You can download them from the Actions tab"
